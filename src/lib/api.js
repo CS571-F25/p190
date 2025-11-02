@@ -1,35 +1,3 @@
-// const RC_KEY = import.meta.env.VITE_RENTCAST_KEY
-
-// function normalize(listing, index = 0) {
-//   const id = listing.listingId || `${listing.formattedAddress}-${listing.latitude}-${listing.longitude}-${index}`
-//   return {
-//     id,
-//     formattedAddress: listing.formattedAddress,
-//     latitude: listing.latitude,
-//     longitude: listing.longitude,
-//     bedrooms: listing.bedrooms,
-//     bathrooms: listing.bathrooms,
-//     price: listing.price,
-//     propertyType: listing.propertyType || 'Apartment',
-//     status: listing.status || 'Active',
-//     listedDate: listing.listedDate || null
-//   }
-// }
-
-// export async function fetchListings({ city = 'Madison', state = 'WI', limit = 24, offset = 0 }) {
-//   if (RC_KEY) {
-//     const url = `https://api.rentcast.io/v1/listings/rental/long-term?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&limit=${limit}&offset=${offset}`
-//     const res = await fetch(url, { headers: { 'X-Api-Key': RC_KEY } })
-//     if (!res.ok) throw new Error('RentCast request failed')
-//     const data = await res.json()
-//     const arr = Array.isArray(data) ? data : (data.listings || data.results || [])
-//     return arr.map(normalize)
-//   } else {
-//     const res = await fetch('/p190/mock-listings.json')
-//     const data = await res.json()
-//     return data.map(normalize)
-//   }
-// }
 const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY
 
 function normalize(el, i = 0, city = '', state = '') {
