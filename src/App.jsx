@@ -5,6 +5,7 @@ import ListingDetail from './pages/ListingDetail.jsx'
 import Shortlist from './pages/Shortlist.jsx'
 import Compare from './pages/Compare.jsx'
 import './App.css'
+import HeaderNav from './components/HeaderNav.jsx'
 
 export default function App() {
   return (

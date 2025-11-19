@@ -1,20 +1,21 @@
-export function getLocal(key, fallback) {
-  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback } catch { return fallback }
+const KEY = 'rr_shortlist_v2'
+
+export function getShortlist(){
+  try { return JSON.parse(localStorage.getItem(KEY) || '{"items":[]}') }
+  catch { return { items: [] } }
 }
-export function setLocal(key, value) { localStorage.setItem(key, JSON.stringify(value)) }
-
-const KEY = 'rr_shortlist' 
-
-export function getShortlist() { return getLocal(KEY, { items: [] }) }
-export function isShortlisted(id) { return getShortlist().items.some(x => x.id === id) }
-export function toggleShortlist(item) {
+export function setShortlist(obj){
+  localStorage.setItem(KEY, JSON.stringify(obj))
+}
+export function isShortlisted(id){
+  return !!getShortlist().items.find(x => x.id === id)
+}
+export function toggleShortlist(item){
   const s = getShortlist()
-  const i = s.items.findIndex(x => x.id === item.id)
-  if (i >= 0) s.items.splice(i, 1); else s.items.push({ id: item.id, data: item, note: '' })
-  setLocal(KEY, s); return s
-}
-export function updateNote(id, note) {
-  const s = getShortlist(); const found = s.items.find(x => x.id === id)
-  if (found) { found.note = note; setLocal(KEY, s) }
-  return s
+  const idx = s.items.findIndex(x => x.id === item.id)
+  let now
+  if (idx >= 0) { s.items.splice(idx,1); now = false }
+  else { s.items.push({ id: item.id, data: item }); now = true }
+  setShortlist(s)
+  return now
 }

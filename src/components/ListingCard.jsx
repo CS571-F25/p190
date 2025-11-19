@@ -2,43 +2,46 @@ import { Card, Button, Badge, Form } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { streetMapUrl } from '../lib/images.js'
 import { isShortlisted, toggleShortlist } from '../lib/storage.js'
+import { useToaster } from './Toaster.jsx'
 
-export default function ListingCard({ item, compare = {}, onToggleCompare }) {
+export default function ListingCard({ item, compare, onToggleCompare }) {
+  const toast = useToaster()
   const saved = isShortlisted(item.id)
-  const title = item.name || item.formattedAddress
-  const img = streetMapUrl(item.latitude, item.longitude)
+  function toggleSave() {
+    const now = toggleShortlist(item)
+    toast(now ? 'Saved to Shortlist' : 'Removed from Shortlist', now ? 'success' : 'secondary')
+  }
 
   return (
-    <Card className="h-100 shadow-sm border-0 rr-card">
+    <Card className="h-100 border-0 shadow-sm">
       <div className="ratio ratio-16x9 bg-light rounded-top">
         <img
           src={streetMapUrl(item.latitude, item.longitude)}
-          alt={`Exterior of ${item.name || item.formattedAddress}`}
           className="object-fit-cover rounded-top"
-          loading="lazy"
-          onError={(e)=>{ e.currentTarget.src = 'https://placehold.co/640x400?text=Map+Unavailable' }}
+          alt={`Exterior of ${item.formattedAddress}`}
         />
       </div>
       <Card.Body className="d-flex flex-column">
-        <Card.Title className="fs-6 mb-1 text-truncate">{title}</Card.Title>
-        <div className="text-muted small mb-2 text-truncate">{item.formattedAddress}</div>
-        <div className="mb-2">
+        <Card.Title className="fs-6">{item.name || item.formattedAddress}</Card.Title>
+        <div className="text-muted small mb-2">{item.formattedAddress}</div>
+        <Card.Text className="mb-2">
           {typeof item.bedrooms !== 'undefined' && <Badge bg="secondary" className="me-2">bd</Badge>}
           {typeof item.bathrooms !== 'undefined' && <Badge bg="secondary" className="me-2">ba</Badge>}
-          {item.priceTier && <Badge bg="dark">${item.priceTier.length}</Badge>}
-        </div>
+          {item.price && <Badge bg="dark">${item.price.toLocaleString?.() || item.price}</Badge>}
+        </Card.Text>
         <div className="mt-auto d-flex gap-2 align-items-center">
           <Button as={Link} to={`/listing/${encodeURIComponent(item.id)}`} state={{ item }} variant="outline-primary" size="sm">Details</Button>
-          <Button onClick={() => toggleShortlist(item)} variant={saved ? 'success' : 'outline-success'} size="sm">
+          <Button onClick={toggleSave} variant={saved ? 'success' : 'outline-success'} size="sm">
             {saved ? 'Saved' : 'Save'}
           </Button>
-          <Form.Check
-            type="checkbox"
-            className="ms-auto"
-            label="Compare"
-            checked={!!compare[item.id]}
-            onChange={() => onToggleCompare(item)}
-          />
+          {typeof compare !== 'undefined' && (
+            <Form.Check
+              type="checkbox"
+              checked={!!compare[item.id]}
+              onChange={() => onToggleCompare(item)}
+              label="Compare"
+            />
+          )}
         </div>
       </Card.Body>
     </Card>
