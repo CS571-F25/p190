@@ -3,14 +3,12 @@ import { Link, useLocation } from 'react-router-dom'
 
 export default function HeaderNav() {
   const { pathname } = useLocation()
-
   return (
     <Navbar
       expand="lg"
       className="bg-white border-bottom shadow-sm sticky-top"
       style={{ top: 0, zIndex: 1020 }}
     >
-      
       <Container fluid>
         <Navbar.Brand as={Link} to="/">RentReady</Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
