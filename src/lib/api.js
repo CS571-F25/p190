@@ -37,10 +37,55 @@ async function geocodeCityState(city, state) {
   return { bbox: f.bbox, center: { lat: f.properties.lat, lon: f.properties.lon } }
 }
 
-export async function fetchListings({ city = 'Madison', state = 'WI', limit = 24, offset = 0 } = {}) {
-  if (!GEOAPIFY_KEY) {
-    throw new Error('Missing VITE_GEOAPIFY_KEY.')
-  }
+function haversineMeters(lat1, lon1, lat2, lon2) {
+  if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return Infinity
+  const R = 6371000
+  const toRad = d => d * Math.PI / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+async function geocodeAddressBest(address) {
+  const qs = new URLSearchParams({ text: address, limit: '1', apiKey: GEOAPIFY_KEY || '' })
+  const res = await fetch(`https://api.geoapify.com/v1/geocode/search?${qs}`)
+  if (!res.ok) return null
+  const data = await res.json()
+  const f = data.features?.[0]?.properties
+  if (!f) return null
+  return { lat: f.lat, lon: f.lon }
+}
+
+const ACCURACY_CACHE_KEY = 'rr_geo_accuracy_v1'
+function readAccuracyCache() {
+  try { return JSON.parse(localStorage.getItem(ACCURACY_CACHE_KEY) || '{}') } catch { return {} }
+}
+function writeAccuracyCache(m) {
+  localStorage.setItem(ACCURACY_CACHE_KEY, JSON.stringify(m))
+}
+
+async function isAccurateListing(item, thresholdMeters = 60) {
+  const cache = readAccuracyCache()
+  const key = String(item.id)
+  if (key in cache) return !!cache[key]
+  const best = await geocodeAddressBest(item.formattedAddress)
+  const ok = !!best && haversineMeters(item.latitude, item.longitude, best.lat, best.lon) <= thresholdMeters
+  cache[key] = ok
+  writeAccuracyCache(cache)
+  return ok
+}
+
+export async function fetchListings({
+  city = 'Madison',
+  state = 'WI',
+  limit = 24,
+  offset = 0,
+  validateAccurate = true,
+  accuracyThresholdMeters = 60,
+  maxValidate = 60
+} = {}) {
+  if (!GEOAPIFY_KEY) throw new Error('Missing VITE_GEOAPIFY_KEY.')
 
   const geo = await geocodeCityState(city, state)
   if (!geo || !geo.bbox) return []
@@ -67,8 +112,20 @@ export async function fetchListings({ city = 'Madison', state = 'WI', limit = 24
     const text = await res.text().catch(() => '')
     throw new Error(`Geoapify places failed (${res.status}): ${text || res.statusText}`)
   }
+
   const data = await res.json()
   const features = data.features || []
-  const items = features.map((el, i) => normalize(el, i, city, state))
-  return items.slice(offset, offset + limit)
+  let items = features.map((el, i) => normalize(el, i, city, state)).slice(offset, offset + limit)
+
+  if (!validateAccurate) return items
+
+  const toCheck = items.slice(0, maxValidate)
+  const results = await Promise.allSettled(
+    toCheck.map(it => isAccurateListing(it, accuracyThresholdMeters))
+  )
+  const accurateIds = new Set()
+  results.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) accurateIds.add(toCheck[i].id) })
+  items = items.filter(it => accurateIds.has(it.id))
+
+  return items
 }

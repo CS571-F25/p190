@@ -1,50 +1,34 @@
-// const KEY = 'rr_compare_v2'
-
-// export function getCompareMap() {
-//   try { return JSON.parse(localStorage.getItem(KEY) || '{}') }
-//   catch { return {} }
-// }
-
-// export function setCompareMap(m) {
-//   localStorage.setItem(KEY, JSON.stringify(m))
-// }
-
-// export function toggleCompareItem(item) {
-//   const m = getCompareMap()
-//   if (m[item.id]) delete m[item.id]
-//   else m[item.id] = { id: item.id, data: item }
-//   setCompareMap(m)
-//   return m
-// }
-
-// export function listCompareItems() {
-//   const m = getCompareMap()
-//   return Object.values(m).map(x => x.data)
-// }
-
-
-
 const KEY = 'rr_compare_v2';
 
 export function getCompareMap() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '{}'); }
-  catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(KEY) || '{}');
+  } catch {
+    return {};
+  }
 }
 
-export function setCompareMap(m) {
-  localStorage.setItem(KEY, JSON.stringify(m));
-  try { window.dispatchEvent(new Event('compare:updated')); } catch {}
+export function setCompareMap(map) {
+  localStorage.setItem(KEY, JSON.stringify(map || {}));
 }
 
 export function toggleCompareItem(item) {
-  const m = getCompareMap();
-  if (m[item.id]) delete m[item.id];
-  else m[item.id] = { id: item.id, data: item };
-  setCompareMap(m);
-  return m;
+  const map = getCompareMap();
+  if (map[item.id]) {
+    delete map[item.id];
+  } else {
+    map[item.id] = { id: item.id, data: item };
+  }
+  setCompareMap(map);
+  return map;
 }
 
 export function listCompareItems() {
-  const m = getCompareMap();
-  return Object.values(m).map(x => x.data);
+  const map = getCompareMap();
+  return Object.values(map).map(x => x.data);
+}
+
+export function clearCompare() {
+  localStorage.removeItem(KEY);
+  return {};
 }
