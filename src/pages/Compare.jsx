@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Alert, Table } from 'react-bootstrap'
 import { listCompareItems, clearCompare } from '../lib/compare.js'
 import { streetMapUrl } from '../lib/images.js'
 import { Link } from 'react-router-dom'
-
+import { getDataSpecs, money } from '../lib/data.js';
 export default function Compare() {
   const [items, setItems] = useState(() => listCompareItems())
 
@@ -18,10 +18,23 @@ export default function Compare() {
     }
   }, [])
 
+  
   const [a, b] = useMemo(() => [items[0], items[1]], [items])
+  const aSpecs = useMemo(() => a ? {
+    bedrooms:  a.bedrooms  ?? getDataSpecs(a.id).bedrooms,
+    bathrooms: a.bathrooms ?? getDataSpecs(a.id).bathrooms,
+    price:     a.price     ?? getDataSpecs(a.id).price,
+  } : null, [a]);
+
+  const bSpecs = useMemo(() => b ? {
+    bedrooms:  b.bedrooms  ?? getDataSpecs(b.id).bedrooms,
+    bathrooms: b.bathrooms ?? getDataSpecs(b.id).bathrooms,
+    price:     b.price     ?? getDataSpecs(b.id).price,
+  } : null, [b]);
+
 
   const onClear = () => { clearCompare(); setItems([]) }
-
+  
   return (
     <div>
       <h1 className="h4 mb-3">Compare</h1>
@@ -100,36 +113,36 @@ export default function Compare() {
               <th scope="col">B</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Address</th>
-              <td>{a?.formattedAddress || '—'}</td>
-              <td>{b?.formattedAddress || '—'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Bedrooms</th>
-              <td>{a?.bedrooms ?? '—'}</td>
-              <td>{b?.bedrooms ?? '—'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Bathrooms</th>
-              <td>{a?.bathrooms ?? '—'}</td>
-              <td>{b?.bathrooms ?? '—'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Price</th>
-              <td>{a?.price ?? '—'}</td>
-              <td>{b?.price ?? '—'}</td>
-            </tr>
-            <tr>
-              <th scope="row">Type</th>
-              <td>{a?.type || 'Apartments'}</td>
-              <td>{b?.type || 'Apartments'}</td>
-            </tr>
-          </tbody>
+            <tbody>
+              <tr>
+                <th scope="row">Address</th>
+                <td>{a?.formattedAddress || '—'}</td>
+                <td>{b?.formattedAddress || '—'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Bedrooms</th>
+                <td>{a ? aSpecs.bedrooms : '—'}</td>
+                <td>{b ? bSpecs.bedrooms : '—'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Bathrooms</th>
+                <td>{a ? bSpecs && aSpecs.bathrooms : '—'}</td>
+                <td>{b ? bSpecs.bathrooms : '—'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Price</th>
+                <td>{a ? money(aSpecs.price) : '—'}</td>
+                <td>{b ? money(bSpecs.price) : '—'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Type</th>
+                <td>{a?.type || 'Apartments'}</td>
+                <td>{b?.type || 'Apartments'}</td>
+              </tr>
+            </tbody>
+
         </Table>
       )}
-
       <div className="d-flex gap-2 mt-3">
         <Button as={Link} to="/" variant="outline-primary">Back to Home</Button>
         <Button variant="outline-danger" onClick={onClear}>Clear Compare</Button>

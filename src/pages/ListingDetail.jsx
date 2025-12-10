@@ -8,12 +8,17 @@ import AddressBlock from '../components/AddressBlock.jsx'
 import BadgesRow from '../components/BadgesRow.jsx'
 import EmailInquiryButton from '../components/EmailInquiryButton.jsx'
 import { googleMapsHref } from '../lib/links.js'
+import { getDataSpecs, money } from '../lib/data.js';
 
 export default function ListingDetail() {
   const { id } = useParams()
   const location = useLocation()
   const fallback = listShortlist().find(x => String(x.id) === String(id))
   const item = location.state?.item || fallback
+  const data = getDataSpecs(item.id);
+  const bedrooms  = item.bedrooms  ?? data.bedrooms;
+  const bathrooms = item.bathrooms ?? data.bathrooms;
+  const price     = item.price     ?? data.price;
 
   if (!item) {
     return (
@@ -59,7 +64,7 @@ export default function ListingDetail() {
             title={item.name || item.formattedAddress}
             address={item.formattedAddress}
           />
-          <BadgesRow bedrooms={item.bedrooms} bathrooms={item.bathrooms} price={item.price} />
+          <BadgesRow bedrooms={bedrooms} bathrooms={bathrooms} price={money(price)} />
 
           <div className="d-flex gap-2 flex-wrap">
             <Button as={Link} to="/" variant="outline-primary">Back</Button>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Row, Col, Card, Button, Dropdown } from 'react-bootstrap'
+import { Row, Col, Card, Button, Dropdown, Container } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { streetMapUrl, fallbackMapUrl } from '../lib/images.js'
 import { listShortlist, clearShortlist, removeFromShortlist } from '../lib/storage.js'
@@ -14,9 +14,9 @@ export default function Shortlist() {
   function onRemove(id) { removeFromShortlist(id); setItems(listShortlist()) }
 
   return (
-    <div>
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <h1 className="h4 mb-0">Shortlist</h1>
+    <Container fluid className="px-0 pt-0">
+      <div className="d-flex align-items-center gap-2 mb-3 page-header">
+        <h1 className="h4 mb-0 mt-0">Shortlist</h1>
 
         <Dropdown>
           <Dropdown.Toggle
@@ -86,6 +86,6 @@ export default function Shortlist() {
           ))}
         </Row>
       )}
-    </div>
+    </Container>
   )
 }
